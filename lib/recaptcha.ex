@@ -25,14 +25,19 @@ defmodule Recaptcha do
       {:ok, api_response} = Recaptcha.verify("response_string")
 
   """
+
+  require Logger
+
   @spec verify(String.t(), Keyword.t()) ::
-            {:ok, Response.t()} | {:error, [atom]}
+          {:ok, Response.t()} | {:error, [atom]}
   def verify(response, options \\ []) do
     verification =
       @http_client.request_verification(
         request_body(response, options),
-      options
+        options
       )
+
+    Logger.info("DEBUG: #{inspect(verification)}")
 
     case verification do
       {:error, errors} ->
@@ -42,8 +47,40 @@ defmodule Recaptcha do
         {:error, Enum.map(errors, &atomise_api_error/1)}
 
       {:ok,
+       %{
+         "success" => true,
+         "challenge_ts" => timestamp,
+         "hostname" => host,
+         "score" => score
+       }} ->
+        {:ok,
+         %Response{
+           challenge_ts: timestamp,
+           hostname: host,
+           score: score,
+           version: :v2
+         }}
+
+      {:ok,
+       %{
+         "success" => true,
+         "challenge_ts" => timestamp,
+         "hostname" => host,
+         "action" => action,
+         "score" => score
+       }} ->
+        {:ok,
+         %Response{
+           challenge_ts: timestamp,
+           hostname: host,
+           action: action,
+           score: score,
+           version: :v2
+         }}
+
+      {:ok,
        %{"success" => true, "challenge_ts" => timestamp, "hostname" => host}} ->
-        {:ok, %Response{challenge_ts: timestamp, hostname: host}}
+        {:ok, %Response{challenge_ts: timestamp, hostname: host, version: :v1}}
 
       {:ok,
        %{"success" => false, "challenge_ts" => _timestamp, "hostname" => _host}} ->

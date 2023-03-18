@@ -35,7 +35,8 @@ defmodule RecaptchaTest do
   test "Passes other options to the http client" do
     Recaptcha.verify("valid_response", timeout: 25_000, recv_timeout: 5_000)
 
-    assert_received {:request_verification, _, [timeout: 25_000, recv_timeout: 5_000]}
+    assert_received {:request_verification, _,
+                     [timeout: 25_000, recv_timeout: 5_000]}
   end
 
   test "Remote IP is used in the request body when it is passed into verify/2 as an option" do
