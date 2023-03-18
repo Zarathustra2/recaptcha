@@ -25,9 +25,6 @@ defmodule Recaptcha do
       {:ok, api_response} = Recaptcha.verify("response_string")
 
   """
-
-  require Logger
-
   @spec verify(String.t(), Keyword.t()) ::
           {:ok, Response.t()} | {:error, [atom]}
   def verify(response, options \\ []) do
@@ -36,8 +33,6 @@ defmodule Recaptcha do
         request_body(response, options),
         options
       )
-
-    Logger.info("DEBUG: #{inspect(verification)}")
 
     case verification do
       {:error, errors} ->
